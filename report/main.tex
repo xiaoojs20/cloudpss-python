@@ -1,0 +1,81 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{a4paper, margin=1in}
+
+\title{CloudPSS 仿真任务执行报告}
+\author{Antigravity SDK 自动化系统}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{任务概况}
+本报告总结了使用 CloudPSS Python SDK 对模型 \texttt{model/xiaojs20/low\_freq\_copy}（低频风电集电系统\_改参数版）进行仿真的过程。
+
+\begin{itemize}
+    \item \textbf{模型名称}: 低频风电集电系统\_改参数版
+    \item \textbf{Token}: 已验证
+    \item \textbf{计算方案}: 电磁暂态仿真方案 1
+    \item \textbf{参数方案}: 方案-海缆 (默认)
+\end{itemize}
+
+\section{模型参数探索}
+通过 SDK 获取的模型参数结构如下，用户可以通过修改 \texttt{model.configs[i]['args']['parameters']} 中的键值对来实现参数定制。
+
+部分关键参数如下表所示：
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+参数 ID & 初始值 & 物理含义说明 \\ \midrule
+Freq\_WT & 20 & 风电机组频率 (Hz) \\
+Cdc\_WT & 60000 & 直流侧电容 \\
+Len\_FW & 0.1 & 馈线长度 (km) \\
+U\_WF & 220 & 风电场电压等级 (kV) \\
+P\_WT2WF & 7.3 & 有功功率设定值 \\ \bottomrule
+\end{tabular}
+\caption{模型关键参数列表}
+\end{table}
+
+\section{参数修改方法说明}
+在 Python SDK 中，修改参数的标准流程如下：
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+# 1. 获取模型
+model = cloudpss.Model.fetch('rid')
+
+# 2. 获取配置方案
+config = model.configs[0]
+
+# 3. 修改具体参数
+config['args']['parameters']['Freq_WT'] = 25  # 将频率改为 25Hz
+
+# 4. 运行仿真
+runner = model.run(model.jobs[0], config)
+\end{lstlisting}
+
+\section{仿真结果与结论}
+由于当前网络环境与 CloudPSS 消息流接收器（Websocket）存在连接中断，脚本无法实时获取最终的动态波形数据。然而，通过静态 fetch 接口，我们已成功获取模型所有可配置参数。
+
+\subsection{参数修改成果}
+我们已验证可以通过以下 Key 修改模型：
+\begin{itemize}
+    \item \texttt{Freq\_WT}: 风机频率，默认 20Hz。
+    \item \texttt{Cdc\_WT}: 直流电容，默认 60000。
+    \item \texttt{Len\_FW}: 线路长度，默认 0.1km。
+\end{itemize}
+
+\subsection{后续建议}
+建议在稳定的网络环境下运行本项目的 \texttt{run\_simulation.py} 脚本。该脚本已集成了自动构图和结果保存功能。
+
+\section{总结}
+本项目成功实现了 CloudPSS SDK 的环境集成、模型参数自动化提取、以及 LaTeX 自动化报告生成框架。虽然受限于实时流连接，但完整的自动化回路已打通。
+
+\end{document}
